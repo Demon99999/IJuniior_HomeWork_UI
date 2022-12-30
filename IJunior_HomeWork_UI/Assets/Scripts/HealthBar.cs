@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using DG.Tweening;
 
 [RequireComponent(typeof(Slider))]
 
@@ -11,7 +10,9 @@ public class HealthBar : MonoBehaviour
     [SerializeField] private Slider _healthSlider;
     [SerializeField] private Player _player;
 
-    private float _rate—hange = 3f;
+    private float _rateChange = 10f;
+    private float _currentValue;
+    private Coroutine _activeCoroutine;
 
     private void OnEnable()
     {
@@ -31,6 +32,23 @@ public class HealthBar : MonoBehaviour
 
     private void OnHealthChanged(float health)
     {
-        _healthSlider.DOValue(health,_rate—hange);
+        _currentValue = _healthSlider.value;
+
+        if (_activeCoroutine != null)
+        {
+            StopCoroutine(_activeCoroutine);
+        }
+
+        _activeCoroutine = StartCoroutine(SmoothUpdate(health));
+    }
+
+    private IEnumerator SmoothUpdate(float health)
+    {
+        while (health != _currentValue)
+        {
+            _healthSlider.value = Mathf.MoveTowards(_currentValue, health, _rateChange * Time.deltaTime);
+            _currentValue = _healthSlider.value;
+            yield return null;
+        }
     }
 }
